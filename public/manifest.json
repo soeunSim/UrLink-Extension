@@ -12,8 +12,5 @@
   "side_panel": {
     "default_path": "index.html"
   },
-  "permissions": [
-    "bookmarks",
-    "sidePanel"
-  ]
+  "permissions": ["bookmarks", "sidePanel"]
 }
