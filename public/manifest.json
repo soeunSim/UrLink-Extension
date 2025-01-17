@@ -1,0 +1,19 @@
+{
+  "name": "UrLink",
+  "description": "내 북마크 속 키워드를 찾아드려요",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_title": "Click to open panel"
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "permissions": [
+    "bookmarks",
+    "sidePanel"
+  ]
+}
