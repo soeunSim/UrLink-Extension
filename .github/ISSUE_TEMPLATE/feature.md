@@ -1,13 +1,19 @@
 ---
 name: Issue Feature Template
 about: 기능구현에 대해 설명하는 템플릿입니다
-title: '[Feature]'
-labels: ''
-assignees: ''
+title: "[Feature]"
+labels: ""
+assignees: ""
 ---
+
 ### 어떤 기능인가요? (칸반보드 노션 링크 추가)
+
 - 노션에 있는 칸반보드를 첨부하여 설명해주세요
+
 ### 구현한 태스크에 대해 설명해주세요
+
 - [ ] 칸반에 있는 체크리스트를 사용하여 설명해주세요
+
 ### 기타
+
 - 첨부자료 필요 시 사용해주세요
