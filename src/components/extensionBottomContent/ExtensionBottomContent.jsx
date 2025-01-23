@@ -1,22 +1,39 @@
+/* global chrome */
 import { useContext } from "react";
 
-import UrlInfoContext from "../../context/UrlInfoContext";
+import ExtensionContext from "../../context/ExtensionContext";
 
 function UrlBox() {
-  const [urlNewList] = useContext(UrlInfoContext);
+  const { bookmarkList } = useContext(ExtensionContext);
+
+  function faviconURL(u) {
+    const url = new URL(chrome.runtime.getURL("/_favicon/"));
+    url.searchParams.set("pageUrl", u);
+    url.searchParams.set("size", "32");
+    return url.toString();
+  }
 
   return (
     <li>
-      {urlNewList.map((url, index) => {
+      {bookmarkList.map((url, index) => {
         return (
-          <a
-            href={`${url.url}`}
-            target="_blank"
+          <div
+            className="flex h-4 m-3"
             key={index}
-            className="block"
           >
-            {url.title}
-          </a>
+            <img
+              src={faviconURL(url.url)}
+              href={`${url.url}`}
+              className="mr-2"
+            />
+            <a
+              href={`${url.url}`}
+              target="_blank"
+              className="block max-w-[300px] flex-grow overflow-hidden text-ellipsis whitespace-nowrap"
+            >
+              {url.title}
+            </a>
+          </div>
         );
       })}
     </li>
