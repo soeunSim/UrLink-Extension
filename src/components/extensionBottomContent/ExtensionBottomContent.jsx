@@ -1,4 +1,3 @@
-/* global chrome */
 import { useContext } from "react";
 
 import ExtensionContext from "../../context/ExtensionContext";

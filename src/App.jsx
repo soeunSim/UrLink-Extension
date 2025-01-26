@@ -1,7 +1,6 @@
-/* global chrome */
 import { useEffect, useState } from "react";
 
-import ExtensionContent from "./components/extensionContent";
+import ExtensionContent from "./components/ExtensionContent";
 
 function App() {
   const [urlNewList, setUrlNewList] = useState([]);
