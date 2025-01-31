@@ -4,16 +4,14 @@ import { useContext } from "react";
 
 import ExtensionContext from "../../../context/ExtensionContext";
 
-function GnbButton({ iconShapeType }) {
-  return (
-    <button className="w-8 text-lg">
-      <FontAwesomeIcon icon={iconShapeType} />
-    </button>
-  );
-}
-
 export default function GlobalNavigationBar() {
   const { bookmarkList } = useContext(ExtensionContext);
+
+  const handleOnClickOpenOptionPage = () => {
+    if (chrome.runtime.openOptionsPage) {
+      chrome.runtime.openOptionsPage();
+    }
+  };
 
   return (
     <div className="w-full text-white flex mb-3 items-center">
@@ -22,8 +20,22 @@ export default function GlobalNavigationBar() {
         <span className="text-sm">개의 북마크</span>
       </p>
       <div className="flex text-white">
-        <GnbButton iconShapeType={faDesktop} />
+        <GnbButton
+          iconShapeType={faDesktop}
+          onClick={handleOnClickOpenOptionPage}
+        />
       </div>
     </div>
+  );
+}
+
+function GnbButton({ iconShapeType, onClick }) {
+  return (
+    <button className="w-8 text-lg">
+      <FontAwesomeIcon
+        icon={iconShapeType}
+        onClick={onClick}
+      />
+    </button>
   );
 }
