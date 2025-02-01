@@ -19,7 +19,7 @@ function WebUrlNewList() {
     url.searchParams.set("size", "32");
     return url.toString();
   }
-  console.log(hasSearchResult);
+
   return (
     <div className="w-full overflow-y-auto grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 gap-4">
       {bookmarkList.map((url, index) => (
