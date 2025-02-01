@@ -2,7 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 
 import { SERVER_URL } from "../constants/constants";
 
-const useFetchKeywordSearchList = (setCrawledResult, bookmarkList) => {
+const useFetchKeywordSearchList = (
+  setCrawledResult,
+  setSearchKeyword,
+  bookmarkList
+) => {
   const [keyword, setKeyword] = useState("");
   const [hasSearchResult, setHasSearchResult] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +24,17 @@ const useFetchKeywordSearchList = (setCrawledResult, bookmarkList) => {
           );
         } else {
           setIsLoading(false);
-          setCrawledResult(bookmarkList);
+          const storageBookMarkList = chrome.storage.session.get([
+            "webBookmarkList",
+          ]);
+          storageBookMarkList.then((res) => {
+            if (Object.keys(res).length !== 0) {
+              setCrawledResult(res.webBookmarkList.searchResultList);
+              setSearchKeyword(res.webBookmarkList.keyword);
+            } else {
+              setCrawledResult(bookmarkList);
+            }
+          });
         }
       });
 
@@ -48,22 +62,22 @@ const useFetchKeywordSearchList = (setCrawledResult, bookmarkList) => {
           setError("검색 결과가 없습니다.");
         }
 
-        setCrawledResult(
-          filterdList.map((filterdItem) => {
-            for (let i = 0; i < bookmarkList.length; i++) {
-              if (bookmarkList[i].url === filterdItem.url) {
-                return { ...filterdItem, ...bookmarkList[i] };
-              }
+        const searchResultList = filterdList.map((filterdItem) => {
+          for (let i = 0; i < bookmarkList.length; i++) {
+            if (bookmarkList[i].url === filterdItem.url) {
+              return { ...filterdItem, ...bookmarkList[i] };
             }
-          })
-        );
+          }
+        });
+
+        setCrawledResult(searchResultList);
       }
 
       setIsLoading(false);
     } catch (error) {
       setError(error);
     }
-  }, [keyword, bookmarkList, setCrawledResult]);
+  }, [keyword, bookmarkList, setCrawledResult, setSearchKeyword]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -73,6 +87,7 @@ const useFetchKeywordSearchList = (setCrawledResult, bookmarkList) => {
   return [
     setKeyword,
     isLoading,
+    setIsLoading,
     error,
     hasSearchResult,
     setHasSearchResult,

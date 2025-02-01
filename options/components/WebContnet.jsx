@@ -11,11 +11,35 @@ function WebContent({ urlNewList }) {
   const [
     setKeyword,
     isLoading,
+    setIsLoading,
     error,
     hasSearchResult,
     setHasSearchResult,
     keyword,
-  ] = useFetchKeywordSearchList(setBookmarkList, urlNewList);
+  ] = useFetchKeywordSearchList(setBookmarkList, setSearchKeyword, urlNewList);
+
+  chrome.storage.onChanged.addListener((changes) => {
+    for (const [key, { newValue }] of Object.entries(changes)) {
+      if (key === "webBookmarkList") {
+        setBookmarkList(newValue.searchResultList);
+        setSearchKeyword(newValue.keyword);
+        break;
+      }
+
+      if (key === "webIsLoading") {
+        setIsLoading(newValue);
+        break;
+      }
+    }
+  });
+
+  const webSearchedList = chrome.storage.session.get(["webBookmarkList"]);
+  webSearchedList.then((list) => {
+    if (Object.keys(list).length !== 0) {
+      setBookmarkList(list.webBookmarkList.searchResultList);
+      setSearchKeyword(list.bookwebBookmarkListmarkList.keyword);
+    }
+  });
 
   const handleStartSearch = () => {
     if (!isLoading) {

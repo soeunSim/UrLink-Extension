@@ -23,11 +23,13 @@ function ExtensionContent({ urlNewList }) {
     <ExtensionContext.Provider
       value={{
         bookmarkList,
+        urlNewList,
         setBookmarkList,
         handleStartSearch,
         keyword,
         searchKeyword,
         setSearchKeyword,
+        isLoading,
       }}
     >
       <ExtensionTopContent />

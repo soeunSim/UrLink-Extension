@@ -23,6 +23,8 @@ const useFetchUrlContent = (setCrawledResult, savedList) => {
       });
 
       if (keyword) {
+        chrome.storage.session.remove("webBookmarkList");
+
         const fetchedResultList = await Promise.allSettled(fetchEncodedUrlList);
         const fetchedParseList = [];
 
@@ -36,27 +38,31 @@ const useFetchUrlContent = (setCrawledResult, savedList) => {
           }
         }
 
-        const filterdList = fetchedParseList.filter((filterdItem) => {
-          if (filterdItem.hasKeyword) {
-            return filterdItem;
+        const filteredList = fetchedParseList.filter((filteredItem) => {
+          if (filteredItem.hasKeyword) {
+            return filteredItem;
           }
         });
 
-        if (filterdList.length === 0) {
+        if (filteredList.length === 0) {
           setError("검색 결과가 없습니다.");
         }
 
-        setCrawledResult(
-          filterdList.map((filterdItem) => {
-            for (let i = 0; i < savedList.length; i++) {
-              if (savedList[i].url === filterdItem.url) {
-                return { ...filterdItem, ...savedList[i] };
-              }
+        const searchResultList = filteredList.map((filteredItem) => {
+          for (let i = 0; i < savedList.length; i++) {
+            if (savedList[i].url === filteredItem.url) {
+              return { ...filteredItem, ...savedList[i] };
             }
-          })
-        );
+          }
+        });
+
+        chrome.storage.session.set({
+          webBookmarkList: { keyword, searchResultList },
+        });
+        setCrawledResult(searchResultList);
       }
 
+      chrome.storage.session.set({ webIsLoading: false });
       setIsLoading(false);
     } catch (error) {
       setError(error);
@@ -64,6 +70,8 @@ const useFetchUrlContent = (setCrawledResult, savedList) => {
   }, [keyword, savedList, setCrawledResult]);
 
   useEffect(() => {
+    chrome.storage.session.set({ webIsLoading: true });
+
     setIsLoading(true);
     getCrawledData();
   }, [getCrawledData]);
