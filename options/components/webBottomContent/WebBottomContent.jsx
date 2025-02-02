@@ -11,7 +11,13 @@ export default function WebBottomContent() {
 }
 
 function WebUrlNewList() {
-  const { bookmarkList, hasSearchResult } = useContext(WebSearchContext);
+  const {
+    bookmarkList,
+    hasSearchResult,
+    keyword,
+    userSelectSearchValue,
+    SELECT_VALUE_STATE,
+  } = useContext(WebSearchContext);
 
   function faviconURL(u) {
     const url = new URL(chrome.runtime.getURL("/_favicon/"));
@@ -36,8 +42,21 @@ function WebUrlNewList() {
               className="mr-2 inline-block w-3 h-3"
               src={faviconURL(url.url)}
             />
-            {url.title}
-            {hasSearchResult ? <HighlightKeyword url={url} /> : ""}
+            {hasSearchResult &&
+            keyword &&
+            userSelectSearchValue === SELECT_VALUE_STATE[0] ? (
+              <HighlightKeyword url={url} />
+            ) : hasSearchResult &&
+              keyword &&
+              userSelectSearchValue === SELECT_VALUE_STATE[1] ? (
+              <HighlightTitleKeyword url={url} />
+            ) : hasSearchResult &&
+              keyword &&
+              userSelectSearchValue === SELECT_VALUE_STATE[2] ? (
+              <HighlightKeyword url={url} />
+            ) : (
+              url.title
+            )}
           </a>
         </div>
       ))}
@@ -46,17 +65,23 @@ function WebUrlNewList() {
 }
 
 function HighlightKeyword({ url }) {
-  const { keyword } = useContext(WebSearchContext);
+  const { keyword, userSelectSearchValue, SELECT_VALUE_STATE } =
+    useContext(WebSearchContext);
 
   return (
-    <div className="mt-3 pt-3 border-t font-normal w-full max-w-[calc(100%-0px)] overflow-hidden text-ellipsis whitespace-nowrap">
-      {url.urlText.includes(keyword) &&
-        url.urlText.split(keyword).map((item, index) => {
+    <>
+      {userSelectSearchValue === SELECT_VALUE_STATE[2] ? (
+        <HighlightTitleKeyword url={url} />
+      ) : (
+        url.title
+      )}
+      <div className="mt-3 pt-3 border-t font-normal w-full max-w-[calc(100%-0px)] overflow-hidden text-ellipsis whitespace-nowrap">
+        {url.urlText.split(keyword).map((item, index) => {
           if (index === 0 && !item) {
             return null;
           } else if (index === 0 && item) {
             return <span key={index}>{item}</span>;
-          } else if (index === 1 && item) {
+          } else {
             return (
               <span key={index}>
                 <span className="bg-blue-800 rounded-lg px-1 inline-block text-white mx-px">
@@ -67,6 +92,32 @@ function HighlightKeyword({ url }) {
             );
           }
         })}
-    </div>
+      </div>
+    </>
+  );
+}
+
+function HighlightTitleKeyword({ url }) {
+  const { keyword } = useContext(WebSearchContext);
+
+  return (
+    <>
+      {url.title.split(keyword).map((item, index) => {
+        if (index === 0 && !item) {
+          return null;
+        } else if (index === 0 && item) {
+          return <span key={index}>{item}</span>;
+        } else {
+          return (
+            <span key={index}>
+              <span className="text-blue-600 font-bold px-1 inline-block mx-px">
+                {keyword}
+              </span>
+              {item}
+            </span>
+          );
+        }
+      })}
+    </>
   );
 }

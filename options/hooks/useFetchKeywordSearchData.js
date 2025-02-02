@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { SERVER_URL } from "../constants/constants";
+import { SELECT_VALUE_STATE } from "../constants/selectValueState";
 
 const useFetchKeywordSearchList = (
   setCrawledResult,
   setSearchKeyword,
-  bookmarkList
+  bookmarkList,
+  userSelectValue
 ) => {
   const [keyword, setKeyword] = useState("");
   const [hasSearchResult, setHasSearchResult] = useState(false);
@@ -18,10 +20,19 @@ const useFetchKeywordSearchList = (
         const encodedUrl = encodeURIComponent(bookmark.url);
 
         if (keyword) {
+          let url = "";
+          if (userSelectValue === SELECT_VALUE_STATE[0]) {
+            url = `${SERVER_URL}/crawl/${encodedUrl}/search?keyword=${keyword}`;
+          }
+          if (userSelectValue === SELECT_VALUE_STATE[1]) {
+            url = `${SERVER_URL}/crawl/title/${encodedUrl}/search?keyword=${keyword}`;
+          }
+          if (userSelectValue === SELECT_VALUE_STATE[2]) {
+            url = `${SERVER_URL}/crawl/all/${encodedUrl}/search?keyword=${keyword}`;
+          }
+
           setHasSearchResult(true);
-          return fetch(
-            `${SERVER_URL}/crawl/${encodedUrl}/search?keyword=${keyword}`
-          );
+          return fetch(url);
         } else {
           setIsLoading(false);
           const storageBookMarkList = chrome.storage.session.get([
@@ -77,7 +88,13 @@ const useFetchKeywordSearchList = (
     } catch (error) {
       setError(error);
     }
-  }, [keyword, bookmarkList, setCrawledResult, setSearchKeyword]);
+  }, [
+    keyword,
+    bookmarkList,
+    setCrawledResult,
+    setSearchKeyword,
+    userSelectValue,
+  ]);
 
   useEffect(() => {
     setIsLoading(true);
