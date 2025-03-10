@@ -6,7 +6,7 @@ import useBookmarks from "./hooks/useBookmarks";
 
 function App() {
   const allBookmarkList = useBookmarks();
-  const [searchMode, setSearchMode] = useState("");
+  const [searchMode, setSearchMode] = useState("CONTENT");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searchBookmarkList, setSearchBookmarkList] = useState([]);
 

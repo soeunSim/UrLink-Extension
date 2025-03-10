@@ -34,13 +34,14 @@ export default function KeywordSearchBox({ isLoading }) {
 
   const handleSearchModeChange = (event) => {
     setSearchMode(event.currentTarget.value);
+    setSearchKeyword("");
   };
 
   return (
     <div className="w-full h-10 rounded-full bg-white/[.5] text-white flex">
       <select
         defaultValue={SEARCH_MODE.CONTENT}
-        className="pl-4 bg-transparent h-10 text-sm placeholder-white grow outline-none"
+        className="w-30 pl-4 bg-transparent h-10 text-sm placeholder-white grow outline-none"
         onChange={handleSearchModeChange}
         disabled={isLoading}
       >
@@ -49,25 +50,27 @@ export default function KeywordSearchBox({ isLoading }) {
         <option value={SEARCH_MODE.ALL}>제목+내용</option>
       </select>
       <input
-        className="pl-4 bg-transparent h-10 text-sm placeholder-white grow outline-none"
+        className="w-50 pl-4 bg-transparent h-10 text-sm placeholder-white grow outline-none"
         type="text"
         value={inputKeyword}
         onChange={handleInputKeyword}
         onKeyDown={handleEnterSearch}
         placeholder="키워드를 입력해 주세요."
       />
-      <button
-        className={`${isLoading && "hidden"} w-4 text-base`}
-        onClick={handleClickReset}
-      >
-        <FontAwesomeIcon icon={faRotate} />
-      </button>
-      <button
-        className={`${isLoading && "hidden"} w-12 text-base`}
-        onClick={handleClickSearch}
-      >
-        <FontAwesomeIcon icon={faMagnifyingGlass} />
-      </button>
+      <div className="w-20 flex justify-center">
+        <button
+          className={`${isLoading && "hidden"} w-4 text-base`}
+          onClick={handleClickReset}
+        >
+          <FontAwesomeIcon icon={faRotate} />
+        </button>
+        <button
+          className={`${isLoading && "hidden"} w-12 text-base`}
+          onClick={handleClickSearch}
+        >
+          <FontAwesomeIcon icon={faMagnifyingGlass} />
+        </button>
+      </div>
     </div>
   );
 }
