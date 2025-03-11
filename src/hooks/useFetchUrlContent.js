@@ -3,11 +3,57 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { URL_TEMPLATES } from "../constants/constants";
 import ExtensionContext from "../context/ExtensionContext";
 
+const STORAGE_LIMIT = 10 * 1024 * 1024;
+
 const useFetchUrlContent = () => {
   const { allBookmarkList, searchMode, setSearchBookmarkList, searchKeyword } =
     useContext(ExtensionContext);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const checkChromeStorageUsage = useCallback(async () => {
+    return new Promise((resolve) => {
+      chrome.storage.local.getBytesInUse(null, (bytesInUse) => {
+        resolve(bytesInUse);
+      });
+    });
+  }, []);
+
+  const removeAnyData = useCallback(async () => {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(null, async (items) => {
+        const keys = Object.keys(items);
+        const notDeletedKeys = ["initialSearchValue"];
+        const deletableKeys = keys.filter(
+          (key) => !notDeletedKeys.includes(key)
+        );
+
+        if (deletableKeys.length === 0) {
+          return resolve();
+        }
+
+        const deleteKey = deletableKeys[0];
+        await new Promise((res) => chrome.storage.local.remove(deleteKey, res));
+
+        resolve();
+      });
+    });
+  }, []);
+
+  const saveDataWithStorageCheck = useCallback(
+    async (key, data) => {
+      const newDataSize = new Blob([JSON.stringify(data)]).size;
+      let availableSpace = STORAGE_LIMIT - (await checkChromeStorageUsage());
+
+      while (availableSpace < newDataSize) {
+        await removeAnyData();
+        availableSpace = STORAGE_LIMIT - (await checkChromeStorageUsage());
+      }
+
+      chrome.storage.local.set({ [key]: data });
+    },
+    [checkChromeStorageUsage, removeAnyData]
+  );
 
   const getCrawledData = useCallback(async () => {
     try {
@@ -77,7 +123,9 @@ const useFetchUrlContent = () => {
             index !== 0 ? localBookmarkList[searchKeyword] : [];
 
           const updatedValue = [...currentValue, ...bookmarkAllInnerText];
-          await chrome.storage.local.set({ [searchKeyword]: updatedValue });
+
+          const key = `${searchKeyword}_${Date.now()}`;
+          await saveDataWithStorageCheck(key, updatedValue);
 
           if (resultBookmarkList) {
             finalBookmarkList = [...finalBookmarkList, ...resultBookmarkList];
@@ -98,7 +146,13 @@ const useFetchUrlContent = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [allBookmarkList, searchKeyword, searchMode, setSearchBookmarkList]);
+  }, [
+    allBookmarkList,
+    searchKeyword,
+    searchMode,
+    setSearchBookmarkList,
+    saveDataWithStorageCheck,
+  ]);
 
   useEffect(() => {
     setIsLoading(true);
