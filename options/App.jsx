@@ -4,31 +4,65 @@ import WebContent from "./components/WebContnet";
 import { WebSearchContext } from "./context/WebSearchContext";
 
 function App() {
-  const [searchValue, setSearchValue] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [urlNewList, setUrlNewList] = useState([]);
+  const [reSearchKeyword, setReSearchKeyword] = useState(searchKeyword);
+
+  const [filteredData, setFilteredData] = useState({ data: [] });
+  const [sortedHistory, setSortedHistory] = useState([]);
+
+  const fetchStorageData = () => {
+    chrome.storage.local.get(null, (items) => {
+      let overallMaxTimestamp = -Infinity;
+      let latestItem = null;
+      const historyArray = [];
+
+      Object.entries(items).forEach(([keyword, data]) => {
+        if (!data || data.length === 0) return;
+
+        const maxTimestampForCategory = data.reduce((max, entry) => {
+          const timestamp = Object.values(entry)[0].timestamp;
+          return timestamp > max ? timestamp : max;
+        }, -Infinity);
+
+        const item = { keyword, data, maxTimestamp: maxTimestampForCategory };
+        historyArray.push(item);
+
+        if (maxTimestampForCategory > overallMaxTimestamp) {
+          overallMaxTimestamp = maxTimestampForCategory;
+          latestItem = item;
+          setSearchKeyword(keyword);
+        }
+      });
+
+      historyArray.sort((a, b) => b.maxTimestamp - a.maxTimestamp);
+
+      setFilteredData(latestItem);
+      setSortedHistory(historyArray);
+    });
+  };
 
   useEffect(() => {
-    chrome.storage.local.get(["initialSearchValue"], (result) => {
-      if (result.initialSearchValue) {
-        setSearchValue(result.initialSearchValue);
-      }
-    });
+    fetchStorageData();
   }, []);
+
+  useEffect(() => {
+    setReSearchKeyword(searchKeyword);
+  }, [searchKeyword]);
 
   return (
     <WebSearchContext.Provider
       value={{
-        searchValue,
-        setUrlNewList,
+        filteredData,
+        setFilteredData,
+        sortedHistory,
         searchKeyword,
-        setSearchKeyword,
+        reSearchKeyword,
+        setReSearchKeyword,
+        setSortedHistory,
+        refreshHistory: fetchStorageData,
       }}
     >
-      <WebContent
-        searchValue={searchValue}
-        urlNewList={urlNewList}
-      />
+      <WebContent />
     </WebSearchContext.Provider>
   );
 }

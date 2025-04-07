@@ -1,11 +1,55 @@
-import { faMagnifyingGlass, faRotate } from "@fortawesome/free-solid-svg-icons";
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import { WebSearchContext } from "../../../context/WebSearchContext";
 
 export default function WebKeywordSearchBox() {
-  const { searchValue } = useContext(WebSearchContext);
+  const { reSearchKeyword, setReSearchKeyword, filteredData, setFilteredData } =
+    useContext(WebSearchContext);
+  const [userInputText, setUserInputText] = useState(reSearchKeyword);
+
+  useEffect(() => {
+    setUserInputText(reSearchKeyword);
+  }, [reSearchKeyword]);
+
+  const handleChangeReSearchKeyword = (event) => {
+    setUserInputText(event.target.value);
+  };
+
+  const handleReSearchResults = () => {
+    setReSearchKeyword(userInputText);
+
+    const copiedData = JSON.parse(JSON.stringify(filteredData.data));
+    const historyArray = [];
+    const seenUrls = new Set();
+
+    copiedData.forEach((innerData) => {
+      Object.values(innerData).forEach((data) => {
+        const match = data.urlAllText.some((text) =>
+          text.includes(userInputText)
+        );
+        if (match && !seenUrls.has(data.url)) {
+          seenUrls.add(data.url);
+          historyArray.push({ [data.url]: data });
+        }
+      });
+    });
+
+    const reTimestamp = new Date().getTime();
+    const item = {
+      keyword: userInputText,
+      data: historyArray,
+      maxTimestamp: reTimestamp,
+    };
+    setFilteredData(item);
+  };
+
+  const handleEnterSearch = (event) => {
+    if (event.key === "Enter") {
+      handleReSearchResults();
+    }
+  };
 
   return (
     <div>
@@ -20,25 +64,30 @@ export default function WebKeywordSearchBox() {
         >
           검색 창
         </label>
-        <SearchOptionButton iconType={faMagnifyingGlass} />
         <input
-          className="bg-transparent h-10 text-sm placeholder-white grow outline-none"
+          className="bg-transparent ps-3 h-10 text-sm placeholder-white grow outline-none"
           name="searchBox"
           type="text"
-          defaultValue={searchValue}
+          value={userInputText}
+          onChange={handleChangeReSearchKeyword}
+          onKeyDown={handleEnterSearch}
           placeholder="키워드를 입력해 주세요."
         />
-        <SearchOptionButton iconType={faRotate} />
+        <SearchOptionButton
+          iconType={faMagnifyingGlass}
+          onClickEvent={handleReSearchResults}
+        />
       </p>
     </div>
   );
 }
 
-function SearchOptionButton({ iconType }) {
+function SearchOptionButton({ iconType, onClickEvent }) {
   return (
     <button
       className="w-[40px] h-10 bg-transparent text-white text-center"
-      type={iconType === "faRotate" ? "reset" : ""}
+      type="button"
+      onClick={onClickEvent}
     >
       <FontAwesomeIcon icon={iconType} />
     </button>
