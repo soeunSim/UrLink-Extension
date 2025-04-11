@@ -5,6 +5,10 @@
   <img width="250" src="https://github.com/user-attachments/assets/20c8066b-e725-4f7b-975b-5ebc11aa995f" />
   
   <br />
+  
+  [UrLink 익스텐션 다운로드](https://chromewebstore.google.com/detail/urlink/ahfnojpakpdiddbnafbmjngbifalkaeh?hl=ko&utm_source=ext_sidebar)
+  
+  <br />
   북마크가 많아서 원하는 내용을 찾기 힘드신가요?<br />이제 직접 방문하지 말고 검색해 보세요.<br /><br />
 </div>
 
