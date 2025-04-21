@@ -29,7 +29,7 @@ URLink는 여러분이 직접 북마크 페이지에 방문하지 않아도, 사
   * [4-4. 사용자에게 크롤링 없이 추가검색 제공하기](#4-4-%EC%82%AC%EC%9A%A9%EC%9E%90%EC%97%90%EA%B2%8C-%ED%81%AC%EB%A1%A4%EB%A7%81-%EC%97%86%EC%9D%B4-%EC%B6%94%EA%B0%80%EA%B2%80%EC%83%89-%EC%A0%9C%EA%B3%B5%ED%95%98%EA%B8%B0)
     + [4-4-1. Extension Storage 추가 검색에 활용하기](#4-4-1-extension-storage-%EC%B6%94%EA%B0%80-%EA%B2%80%EC%83%89%EC%97%90-%ED%99%9C%EC%9A%A9%ED%95%98%EA%B8%B0)
     + [4-4-2. Extension Storage 용량 관리](#4-4-2-extension-storage-%EC%9A%A9%EB%9F%89-%EA%B4%80%EB%A6%AC)
-  * [4-5. 북마크들의 서버, 페이지가 유효하지 않은 경우](#4-5-%EB%B6%81%EB%A7%88%ED%81%AC%EB%93%A4%EC%9D%98-%EC%84%9C%EB%B2%84-%ED%8E%98%EC%9D%B4%EC%A7%80%EA%B0%80-%EC%9C%A0%ED%9A%A8%ED%95%98%EC%A7%80-%EC%95%8A%EC%9D%80-%EA%B2%BD%EC%9A%B0)
+  * [4-5. 북마크 URL 유효성 검증 및 크롤링 오류 처리](#4-5-%EB%B6%81%EB%A7%88%ED%81%AC-url-%EC%9C%A0%ED%9A%A8%EC%84%B1-%EA%B2%80%EC%A6%9D-%EB%B0%8F-%ED%81%AC%EB%A1%A4%EB%A7%81-%EC%98%A4%EB%A5%98-%EC%B2%98%EB%A6%AC)
   * [4-6. 받아온 문장에서 일치하는 키워드를 하이라이팅 처리하기](#4-6-%EB%B0%9B%EC%95%84%EC%98%A8-%EB%AC%B8%EC%9E%A5%EC%97%90%EC%84%9C-%EC%9D%BC%EC%B9%98%ED%95%98%EB%8A%94-%ED%82%A4%EC%9B%8C%EB%93%9C%EB%A5%BC-%ED%95%98%EC%9D%B4%EB%9D%BC%EC%9D%B4%ED%8C%85-%EC%B2%98%EB%A6%AC%ED%95%98%EA%B8%B0)
 - [5. 협업 방식](#5-%ED%98%91%EC%97%85-%EB%B0%A9%EC%8B%9D)
   * [5-1. 협업 코어 타임](#5-1-%ED%98%91%EC%97%85-%EC%BD%94%EC%96%B4-%ED%83%80%EC%9E%84)
@@ -39,7 +39,6 @@ URLink는 여러분이 직접 북마크 페이지에 방문하지 않아도, 사
   * [6-2. 2차 개발](#6-2-2%EC%B0%A8-%EA%B0%9C%EB%B0%9C)
 - [7. 팀원](#7-%ED%8C%80%EC%9B%90)
 
-<!-- tocstop -->
 
 ## 1. 개발 동기
 일상적으로 인터넷을 사용하다 보면, 저장해둔 북마크가 어느새 쌓여가는 경험을 하게 됩니다. 그러다 보니 북마크의 제목만으로는 실제 페이지의 내용을 파악하기 어려워, 필요한 정보를 찾기 위해선 저장해둔 북마크를 매번 직접 방문해 확인해야 하는 불편함이 생겼습니다. 더불어 기존의 서비스들은 주로 북마크 제목을 기반으로 검색 기능을 제공했기에, 세세한 내용 검색에는 한계가 있었습니다.
@@ -225,41 +224,55 @@ Storage에 저장된 데이터의 용량을 파악하기 위해 Chrome Storage A
 
 <br/>
 
-### 4-5. 북마크들의 서버, 페이지가 유효하지 않은 경우
-북마크 URL의 유효성과 서버 응답 상태를 판단하여 에러 처리를 구현했습니다. 사용자가 검색 결과에 대해 알고 있더라도, 오래된 북마크로 인해 페이지가 유효하지 않거나 서버가 응답하지 않는 경우가 발생할 수 있습니다.<br />
-이러한 상황에서 사용자가 검색 결과에 대해 의아해하지 않도록, 정규식을 통해 URL의 유효성을 확인하고, Puppeteer를 활용해 서버 응답 상태를 판단하여 그에 관한 에러 처리를 제공합니다.
+### 4-5. 북마크 URL 유효성 검증 및 크롤링 오류 처리
+페이지 유효성 검사와 크롤링 오류 처리 강화를 위해, 잘못된 URL은 **400 Bad Request**로, 네트워크·렌더링 실패는 **500 Internal Server Error**로 명확히 구분하도록 개선했습니다. <br/>
+
+대부분의 북마크 URL은 사용자가 등록할 때 올바른 형태를 갖추지만, 사용자 입력 실수나 디코딩 과정에서 예외가 발생할 수 있어 별도 예외 처리가 필요했습니다. 따라서 URL 형식 검증 단계에서 잘못된 요청 형식, 유효하지 않은 요청 메시지를 의미하는 **400 Bad Request**로 응답하도록 구현했습니다. <br/>
+
+그 외 네트워크 또는 렌더링 오류로 크롤링이 실패할 경우, **500 Internal Server Error**를 반환해 사용자에게 접근 실패 사유를 명확히 제공하도록 로직을 처리하였습니다.
 ```js
 catch (error) {
   if (!isCheckTrueThisUrl(decodedLink)) {
+	  // 예외케이스, URL 포맷 오류 확인 처리.
     return res
       .status(400)
       .send({ message: `[Invalid Characters in HTTP request]  ${error}` });
   } else {
+	  // 네트워크·렌더링 실패 처리.
     return res
       .status(500)
       .send({ message: `[ServerError occured] ${error}` });
   }
 } 
-
-// 정상 URL 확인 함수
-const isCheckTrueThisUrl = (url) => {
-  const urlRegex = /^(http|https):\/\/[\w\-]+(\.[\w\-]+)+[/#?]?.*$/;
-  if (urlRegex.test(url)) {
-    return true;
-  } else {
-    return false;
-  }
-};
 ```
-Puppeteer를 통해 북마크 URL 크롤링 중 에러가 발생하면, try...catch 문의 catch 블록에서 해당 에러를 처리합니다.<br />
-먼저 정규식을 사용해 URL의 유효성을 검사합니다. 만약 URL이 유효하지 않다면 클라이언트에게 400 Bad Request 에러를 반환합니다.<br />
-반면, URL은 정상이지만 서버가 응답하지 않아 크롤링이 불가능한 경우에는 500 Internal Server Error를 클라이언트로 전송합니다. 이를 통해 사용자에게 명확한 에러 사유를 제공합니다.
+그러나 **500 Internal Server Error** 처리에서 들어오는 값을 확인 하던 중 일부 북마크 페이지가 iframe 내부에서만 콘텐츠를 렌더링하며, 최초 ```await page.$eval("body", ...)``` 호출 시 ```innerText```가 빈 값으로 인식되어 불필요한 500 에러가 반환 되는 사례를 발견하게 되었습니다.
 
 <div align="center">
-  <img width="500" src="https://github.com/user-attachments/assets/900e30ee-8b3d-41c5-a2c9-44856427ef68"/>
+  <img src="https://github.com/user-attachments/assets/e2ba5ff8-6d0f-4ab4-9add-55b8e40701ca"/>
 </div>
-이렇게 전달받은 에러들은 사용자에게 어떠한 이유로 해당 북마크에 접근하지 못했고 총 몇개의 북마크를 가지고 오지 못했는지 표시되는 용도로 사용됩니다.<br />
 
+초기 ```body.innerText```가 빈 값으로 반환될 경우, iframe 요소의 src 경로로 ```page.goto()```를 다시 호출하여 해당 URL에 재접속해 콘텐츠를 재수집하도록 아래 로직과 같이 수정했습니다.
+
+```js
+if (!innerText) {
+  // iframe 로드 대기
+  await page.waitForSelector("iframe", { timeout: TIMEOUT });
+
+  // iframe src로 재접속
+  const iframeUrl = await page.$eval("iframe", iframe => iframe.src);
+  await page.goto(iframeUrl);
+
+  // 재추출한 본문에서 키워드 검색
+  innerText = await page.evaluate(() => document.body.innerText);
+  hasKeyword = innerText.toUpperCase().includes(upperCasedKeyword);
+
+  // 비허용 iframe URL 방어
+  if (!iframeUrl || !iframeUrl.startsWith("https://blog.naver.com")) {
+    throw new Error(`[Invalid iframe URL]`);
+  }
+}
+```
+이로써 iframe 기반 페이지에서도 안정적으로 크롤링이 가능해졌으며, 사용자에게 정의된 **400 Bad Request & 500 Internal Server Error** 에러 사유를 일관적으로 전달할 수 있게 되었습니다.
 
 <br/><br/>
 
