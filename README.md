@@ -30,7 +30,7 @@ URLink는 여러분이 직접 북마크 페이지에 방문하지 않아도, 사
     + [4-4-1. Extension Storage 추가 검색에 활용하기](#4-4-1-extension-storage-%EC%B6%94%EA%B0%80-%EA%B2%80%EC%83%89%EC%97%90-%ED%99%9C%EC%9A%A9%ED%95%98%EA%B8%B0)
     + [4-4-2. Extension Storage 용량 관리](#4-4-2-extension-storage-%EC%9A%A9%EB%9F%89-%EA%B4%80%EB%A6%AC)
   * [4-5. 북마크 URL 유효성 검증 및 크롤링 오류 처리](#4-5-%EB%B6%81%EB%A7%88%ED%81%AC-url-%EC%9C%A0%ED%9A%A8%EC%84%B1-%EA%B2%80%EC%A6%9D-%EB%B0%8F-%ED%81%AC%EB%A1%A4%EB%A7%81-%EC%98%A4%EB%A5%98-%EC%B2%98%EB%A6%AC)
-  * [4-6. 받아온 문장에서 일치하는 키워드를 하이라이팅 처리하기](#4-6-%EB%B0%9B%EC%95%84%EC%98%A8-%EB%AC%B8%EC%9E%A5%EC%97%90%EC%84%9C-%EC%9D%BC%EC%B9%98%ED%95%98%EB%8A%94-%ED%82%A4%EC%9B%8C%EB%93%9C%EB%A5%BC-%ED%95%98%EC%9D%B4%EB%9D%BC%EC%9D%B4%ED%8C%85-%EC%B2%98%EB%A6%AC%ED%95%98%EA%B8%B0)
+  * [4-6. React에서 안전하게 키워드를 하이라이팅 처리하기](#4-6-react%EC%97%90%EC%84%9C-%EC%95%88%EC%A0%84%ED%95%98%EA%B2%8C-%ED%82%A4%EC%9B%8C%EB%93%9C%EB%A5%BC-%ED%95%98%EC%9D%B4%EB%9D%BC%EC%9D%B4%ED%8C%85-%EC%B2%98%EB%A6%AC%ED%95%98%EA%B8%B0)
 - [5. 협업 방식](#5-%ED%98%91%EC%97%85-%EB%B0%A9%EC%8B%9D)
   * [5-1. 협업 코어 타임](#5-1-%ED%98%91%EC%97%85-%EC%BD%94%EC%96%B4-%ED%83%80%EC%9E%84)
   * [5-2. 깃 전략](#5-2-%EA%B9%83-%EC%A0%84%EB%9E%B5)
@@ -59,20 +59,23 @@ URLink는 여러분이 직접 북마크 페이지에 방문하지 않아도, 사
 <table>
   <tr>
     <td width="60%" align="center">
-      <img width="300" center height="450" style="display:inline-block;" src="https://github.com/user-attachments/assets/e884ce22-8bb9-47bd-bf28-7bd70fb44932" />
+      <img width="300" center height="450" style="display:inline-block;" src="https://github.com/user-attachments/assets/28c5aee5-619a-4458-89d1-80bcc114f5af" />
     </td>
     <td width="40%">
       * 북마크 검색<br /><br />
-      사용자의 북마크 목록을 불러온 뒤, 사용자의 북마크 URL을 순회하며 각 페이지를 크롤링하고, 본문 내 지정된 키워드를 검색하여 검색 결과를 점진적으로 화면에 렌더링합니다.
+      사용자의 북마크 목록을 불러온 뒤, 사용자의 북마크 URL을 순회하며 각 페이지를 크롤링하고, 본문 내 지정된 키워드를 검색하여 검색 결과를 점진적으로 화면에 렌더링합니다. <br/>
+	    (익스텐션 초기진입화면)
     </td>
   </tr>
   <tr>
     <td>
-      <img height="350" src="https://github.com/user-attachments/assets/01358a95-e5b7-449d-8797-d3156eac85b6" />
+      <img height="350" src="https://github.com/user-attachments/assets/f07088fa-ba09-480b-9dd6-f09e9279ace2" />
     </td>
     <td>
-      * 검색 기록 추가 검색<br /><br />
-      사용자가 익스텐션에서 진행한 검색 기록을 로컬스토리지에 저장하여 별도의 크롤링 없이 빠른 키워드 필터링 검색을 제공합니다.
+      * 결과 내 재 검색<br /><br />
+      사용자는 익스텐션에서 수행한 검색 기록을 기반으로, 옵션 페이지 내에서 결과를 다시 검색할 수 있습니다. <br/>
+      이때 저장된 검색 데이터는 로컬 스토리지를 통해 제공되므로, 추가적인 크롤링 없이 빠르게 재검색이 가능합니다.<br/>
+     (옵션페이지 초기진입화면)
     </td>
   </tr>
 </table>
@@ -276,9 +279,28 @@ if (!innerText) {
 
 <br/><br/>
 
-### 4-6. 받아온 문장에서 일치하는 키워드를 하이라이팅 처리하기
-HTML을 주입할 수 없는 React에서 특정 키워드를 하이라이팅하기 위해, split 메서드를 활용해 문장을 분할하고, 하이라이팅할 키워드를 HTML 태그로 감싸 렌더링하는 방식을 채택했습니다.<br /> 
-dangerouslySetInnerHTML을 사용하면 HTML을 직접 삽입할 수 있지만, [XSS(교차 사이트 스크립팅) 공격과 같은 보안 위험이 있고 최대한 피하는 것이 좋다](https://react.dev/reference/react-dom/components/common#dangerously-setting-the-inner-html)는 것을 알게 되어 대신, split을 통해 키워드를 분리한 후 map 함수로 렌더링하면서 하이라이팅 태그를 추가하는 방식으로 처리했습니다.<br />
+### 4-6. React에서 안전하게 키워드를 하이라이팅 처리하기
+React에서는 기본적으로 HTML을 직접 삽입할 수 없기 때문에, 문장에서 특정 키워드를 강조(하이라이팅) 하기 위해 `split`과 `map`을 활용한 방식으로 구현했습니다.<br /> 
+
+**[❌ 사용하지 않은 방식 1: `mark` 태그]** <br/>
+HTML5의 `mark` 태그는 문서 내 특정 검색 결과 또는 중요 텍스트를 의미적으로 강조할 때 사용됩니다.
+하지만 이번 케이스는 단순 스타일 목적의 하이라이팅이기 때문에, [MDN 공식문서](https://developer.mozilla.org/ko/docs/Web/HTML/Reference/Elements/mark)에서도 권장하지 않는 사용 방식이었습니다.
+
+<br/>
+
+**[❌ 사용하지 않은 방식 2 : `dangerouslySetInnerHTML`]** <br/>
+dangerouslySetInnerHTML를 통해 HTML을 직접 삽입하면 간편하게 강조 처리를 할 수 있지만,
+[XSS(교차 사이트 스크립팅) 공격과 같은 보안 위험이 있고 최대한 피하는 것](https://react.dev/reference/react-dom/components/common#dangerously-setting-the-inner-html) 이 React 공식 문서에서도 권장하지 않는 것을 확인하였습니다.
+
+<br/>
+
+**[✅ 최종선택 : `split()`와 `map()`으로 안전하게 하이라이트 처리]** <br/>
+HTML 삽입 없이도 키워드를 강조하기 위해, 다음과 같은 방식을 적용했습니다.
+
+1. 먼저 `split()`으로 문장을 검색 키워드 기준으로 분할합니다.
+2. map()으로 각 조각을 순회합니다.
+3. 키워드 위치에만 안전한 <span> 요소로 강조 태그를 삽입합니다.
+
 ``` js
 {bookmark.urlText.split(searchKeyword).map((item, index) => {
   if (item === "") {
@@ -297,6 +319,7 @@ dangerouslySetInnerHTML을 사용하면 HTML을 직접 삽입할 수 있지만, 
   );
 })}
 ```
+이처럼 보안성과 의미를 모두 고려한 방식으로 키워드 강조 기능을 구현할 수 있었습니다.
 
 <br/>
 
@@ -345,10 +368,15 @@ main 브랜치는 배포를 위한 브랜치로, 항상 배포 가능한 수준�
 > - 익스텐션 옵션페이지 추가
 
 ### 6-2. 2차 개발
-현재 진행 중<br />
+2025년 3월 27일 ~ 2025년 4월 12일<br />
 > 진행 사항
-> - 옵션 페이지 기획 변경
-> - 리팩토링 진행
+> - 검색 시 fetch 요청이 중단되는 이슈해결
+> - localStorage에 추가할 크롤링 data 추출
+> - 옵션 페이지, 결과 내 재검색 기능 구현
+> - 크롤링요청 개선 - 타임아웃 로직 추가
+> - 1차, 익스텐션 배포를 위한 프로젝트 설정
+
+**[추가개발 고려사항]**
 > - 전역상태 설정
 > - fetch Aixos로 변경
 
